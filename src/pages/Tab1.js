@@ -30,10 +30,11 @@ const Tab1 = () => {
   const submitData = (event) => {
     event.preventDefault();
     db.collection("room").add({
-      name: playerName,
+      playerName: playerName,
       text: textRef.current.value,
       timestamp: firebase.firestore.FieldValue.serverTimestamp(),
     });
+    textRef.current.value = "";
   };
 
   useEffect(() => {
@@ -44,7 +45,7 @@ const Tab1 = () => {
           return {
             id: doc.id,
             text: docData.text,
-            name: docData.name,
+            playerName: docData.playerName,
           };
         })
       );
@@ -63,9 +64,9 @@ const Tab1 = () => {
             <IonTitle>{roomName}</IonTitle>
           </IonToolbar>
         </IonHeader>
-        {talks.map((talk) => {
+        {talks.map((talk, i) => {
           return (
-            <div>
+            <div key={i}>
               <div>
                 <IonLabel style={{ fontSize: "12px" }}>
                   <strong>{talk.playerName}</strong>
