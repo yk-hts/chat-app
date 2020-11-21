@@ -29,7 +29,7 @@ const Tab1 = () => {
 
   const submitData = (event) => {
     event.preventDefault();
-    db.collection("room").add({
+    db.collection("rooms").add({
       playerName: playerName,
       text: textRef.current.value,
       timestamp: firebase.firestore.FieldValue.serverTimestamp(),
@@ -38,7 +38,7 @@ const Tab1 = () => {
   };
 
   useEffect(() => {
-    const unsubscribe = db.collection("room").onSnapshot((snapshot) => {
+    const unsubscribe = db.collection("rooms").onSnapshot((snapshot) => {
       setTalks(
         snapshot.docs.map((doc) => {
           const docData = doc.data();
