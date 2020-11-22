@@ -13,93 +13,120 @@ import {
   IonLabel,
   IonImg,
   IonModal,
+  IonButtons,
 } from "@ionic/react";
 import firebase from "firebase";
-import { db } from "../utils/firebase";
+import { db, storage } from "../utils/firebase";
 
-import { images, sendSharp } from "ionicons/icons";
-import "./Tab3.css";
-import ImageUpload from "./ImageUpload";
+import { images, sendSharp, closeCircleOutline } from "ionicons/icons";
+// import "./Tab3.css";
 
-const Tab3 = () => {
+const Chat = () => {
   const roomName = "RoomName";
   const playerName = "ゆうき";
-  const [] = useState("");
+  const [image, setImage] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [] = useState("");
-  const [talks, setTalks] = useState([]);
-  const textRef = useRef();
+  const [progress, setProgress] = useState(0);
+  const [isImageSelected, setIsImageSelected] = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState("");
+  const [imgUrl, setImgUrl] = useState("");
 
   const submitData = (event) => {
     event.preventDefault();
-    db.collection("room").doc("qhqn49nPaqZT6gVfAEzQ").collection("talk").add({
-      playerName: playerName,
-      text: textRef.current.value,
-      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-    });
-    // db.collection("rooms").add({
-    //   playerName: playerName,
-    //   text: textRef.current.value,
-    //   timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-    // });
-    textRef.current.value = "";
+    if (isImageSelected) {
+      handleUpload();
+    } else {
+      db.collection("messages").add({
+        playerName: playerName,
+        text: input,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+      // db.collection("rooms").add({
+      //   playerName: playerName,
+      //   text: textRef.current.value,
+      //   timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      // });
+      setInput("");
+    }
+    setIsImageSelected(false);
   };
 
-  const ImageModal = (props) => {
-    const img = props.img;
-    return (
-      <div>
-        <IonModal isOpen={showModal}>
-          <IonImg
-            src={img}
-            style={{ display: "flex", alignItems: "center" }}
-          ></IonImg>
-          <IonButton onClick={() => setShowModal(false)}>close</IonButton>
-        </IonModal>
-      </div>
+  const handleChange = (e) => {
+    if (e.target.files[0]) {
+      setImage(e.target.files[0]);
+      setIsImageSelected(true);
+    }
+  };
+
+  const handleInputChange = (e) => {
+    e.preventDefault();
+    setInput(e.target.value);
+  };
+
+  const handleUpload = () => {
+    const uploadTask = storage.ref(`images/${image.name}`).put(image);
+
+    uploadTask.on(
+      "state_changed",
+      (snapshot) => {
+        const progress = Math.round(
+          (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+        );
+        setProgress(progress);
+      },
+      (error) => {
+        console.log(error);
+        alert(error.message);
+      },
+      () => {
+        storage
+          .ref("images")
+          .child(image.name)
+          .getDownloadURL()
+          .then((url) => {
+            db.collection("messages").add({
+              playerName: playerName,
+              timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+              text: "",
+              img: url,
+            });
+          });
+      }
     );
   };
 
+  const getImgUrl = (item) => {
+    setShowModal(true);
+    setImgUrl(item);
+  };
+
   useEffect(() => {
-    const talkRef = db
-      .collection("room")
-      .doc("qhqn49nPaqZT6gVfAEzQ")
-      .collection("talk");
-    const unsubscribe = talkRef
+    // const talkRef = db
+    //   .collection("messages")
+    //   .doc("qhqn49nPaqZT6gVfAEzQ")
+    //   .collection("talk");
+    const unsubscribe = db
+      .collection("messages")
       .orderBy("timestamp", "asc")
       .onSnapshot((snapshot) => {
-        setTalks(
+        setMessages(
           snapshot.docs.map((doc) => {
+            console.log(1);
             const docData = doc.data();
             return {
-              id: doc.id,
+              id: "12345",
               text: docData.text,
               playerName: docData.playerName,
-              imgUrl: docData.imgUrl,
+              img: docData.img,
             };
           })
         );
       });
-    // const unsubscribe = db
-    //   .collection("room")
-    //   .orderBy("timestamp", "asc")
-    //   .onSnapshot((snapshot) => {
-    //     setTalks(
-    //       snapshot.docs.map((doc) => {
-    //         const docData = doc.data();
-    //         return {
-    //           id: doc.id,
-    //           text: docData.text,
-    //           playerName: docData.playerName,
-    //         };
-    //       })
-    //     );
-    //   });
     return () => {
       unsubscribe();
     };
   }, []);
-  console.log(talks);
 
   return (
     <IonPage>
@@ -109,46 +136,50 @@ const Tab3 = () => {
             <IonTitle>{roomName}</IonTitle>
           </IonToolbar>
         </IonHeader>
-        {/* <ImageUpload playderName={playerName} /> */}
-        {talks.map((talk, i) => {
+        {messages.map((message, i) => {
           return (
             <div key={i}>
-              {talk.imgUrl ? (
-                playerName === talk.playerName ? (
+              {message.img ? (
+                playerName === message.playerName ? (
                   <div style={{ padding: "10px 0" }}>
-                    <div align="right">{talk.playerName}</div>
+                    <div align="right">{message.playerName}</div>
                     <IonImg
                       style={{
                         maxWidth: "80%",
                         maxHeight: "80%",
                         marginLeft: "auto",
                       }}
-                      src={talk.imgUrl}
-                      onClick={() => setShowModal(true)}
+                      src={message.img}
+                      onClick={() => getImgUrl(message.img)}
                     />
-                    {/* <showImage img={talk.imgUrl} LorR="marginLeft : auto" /> */}
-                    <ImageModal img={talk.imgUrl} />
+                    {console.log(message.img)}
                   </div>
                 ) : (
                   <div style={{ padding: "10px 0" }}>
-                    <div align="right">{talk.playerName}</div>
+                    <div align="right">{message.playerName}</div>
                     <IonImg
                       style={{
                         maxWidth: "80%",
                         maxHeight: "80%",
                         marginRight: "auto",
                       }}
-                      src={talk.imgUrl}
+                      src={message.img}
                       onClick={() => setShowModal(true)}
                     />
-                    {/* <showPlayerName name={talk.playerName} />
-                    <showImage img={talk.url} LorR="marginRight" /> */}
-                    <ImageModal img={talk.imgUrl} />
+                    {/* <IonModal isOpen={showModal} style={{ background: "dark" }}>
+                      <IonImg
+                        src={message.img}
+                        style={{ display: "flex", alignItems: "center" }}
+                      ></IonImg>
+                      <IonButton onClick={() => setShowModal(false)}>
+                        close
+                      </IonButton>
+                    </IonModal> */}
                   </div>
                 )
-              ) : playerName === talk.playerName ? (
+              ) : playerName === message.playerName ? (
                 <div style={{ padding: "10px 0" }}>
-                  <div align="right">{talk.playerName}</div>
+                  <div align="right">{message.playerName}</div>
                   <IonLabel
                     style={{
                       display: "block",
@@ -159,15 +190,12 @@ const Tab3 = () => {
                       padding: "0 5px",
                     }}
                   >
-                    {talk.text}
+                    {message.text}
                   </IonLabel>
                 </div>
               ) : (
                 <div style={{ padding: "10px 0" }}>
-                  {/* <div>
-                    <IonLabel style={{ fontSize: "12px" }}></IonLabel>
-                  </div> */}
-                  {talk.playerName}
+                  {message.playerName}
                   <IonLabel
                     style={{
                       display: "block",
@@ -178,51 +206,65 @@ const Tab3 = () => {
                       padding: "0 5px",
                     }}
                   >
-                    {talk.text}
+                    {message.text}
                   </IonLabel>
                 </div>
               )}
             </div>
           );
         })}
+        <IonModal isOpen={showModal} style={{ backgroundColor: "red" }}>
+          <IonHeader>
+            <IonIcon
+              icon={closeCircleOutline}
+              size="large"
+              style={{ paddingLeft: "5px", paddingTop: "5px" }}
+              onClick={() => setShowModal(false)}
+            ></IonIcon>
+          </IonHeader>
+          <IonContent color="dark">
+            <IonImg src={imgUrl} style={{ margin: "auto" }} />
+          </IonContent>
+          {/* <IonButtons slot="start">
+            <IonButton slot="icon-only">
+              <div style={{ display: "flex" }}></div>
+            </IonButton>
+          </IonButtons> */}
+          {/* <IonItem></IonItem> */}
+        </IonModal>
+        <div id="#"></div>
       </IonContent>
       <IonFooter>
         <IonToolbar>
-          <IonItem lines="none">
-            {/* <ImageUpload /> */}
-            {/* <IonIcon
-              icon={imageOutline}
-              style={{
-                fontSize: "28px",
-                marginTop: "8px",
-                paddingRight: "8px",
-              }}
-              onClick={console.log(1)}
-            /> */}
-            {/* <IonInput
-              type="file"
-              onChange={handleImage}
-              style={{ display: "none" }}
-            /> */}
-
-            {/* <IonInput
-              value={text}
-              placeholder="メッセージを入力"
-              onIonChange={(e) => setText(e.target.value)}
-            /> */}
-            <IonButton
-              type="submit"
-              onClick={submitData}
-              // style={{ fontSize: "15px" }}
-              slot="end"
-            >
-              <IonIcon icon={sendSharp}></IonIcon>
-            </IonButton>
-            <IonInput
-              placeholder="メッセージを入力"
-              ref={textRef}
-              // style={{ marginLeft: "100px" }}
-            />
+          <IonItem lines="none" style={{ marginBottom: "2px" }}>
+            <label style={{ padding: "5px 15px 0 0" }}>
+              <IonIcon icon={images} style={{ fontSize: "30px" }}></IonIcon>
+              <input
+                type="file"
+                style={{ display: "none" }}
+                id="file"
+                onChange={handleChange}
+              ></input>
+            </label>
+            <IonButtons slot="end">
+              <IonButton
+                type="submit"
+                onClick={submitData}
+                slot="icon-only"
+                disabled={!(isImageSelected || !(input === ""))}
+              >
+                <IonIcon icon={sendSharp} color="dark"></IonIcon>
+              </IonButton>
+            </IonButtons>
+            {!isImageSelected ? (
+              <IonInput
+                placeholder="メッセージを入力"
+                value={input}
+                onIonChange={handleInputChange}
+              />
+            ) : (
+              <IonLabel>画像が選択されました</IonLabel>
+            )}
           </IonItem>
         </IonToolbar>
       </IonFooter>
@@ -230,4 +272,4 @@ const Tab3 = () => {
   );
 };
 
-export default Tab3;
+export default Chat;
