@@ -45,6 +45,7 @@ const App = () => (
             <PrivateRouter path="/chat" component={Chat} exact={true} />
             <Route path="/signin" component={SignIn} exact={true} />
             <Route path="/signup" component={SignUp} exact={true} />
+            <Route path="/" component={SignIn} exact={true} />
           </IonRouterOutlet>
           <IonTabBar slot="bottom">
             <IonTabButton tab="tab1" href="/signin">
