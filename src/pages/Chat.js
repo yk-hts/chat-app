@@ -20,6 +20,7 @@ import { db, storage } from "../utils/firebase";
 
 import { images, sendSharp, closeCircleOutline } from "ionicons/icons";
 // import "./Tab3.css";
+// const scrollToRef = (ref) => window.scrollTo(0, ref.current.offsetTop);
 
 const Chat = () => {
   const roomName = "RoomName";
@@ -31,6 +32,10 @@ const Chat = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [imgUrl, setImgUrl] = useState("");
+  let docCount = 1;
+
+  const myRef = useRef(null);
+  // const executeScroll = () => myRef.current.scrollIntoView();
 
   const submitData = (event) => {
     event.preventDefault();
@@ -112,8 +117,8 @@ const Chat = () => {
       .onSnapshot((snapshot) => {
         setMessages(
           snapshot.docs.map((doc) => {
-            console.log(1);
             const docData = doc.data();
+
             return {
               id: "12345",
               text: docData.text,
@@ -136,37 +141,41 @@ const Chat = () => {
             <IonTitle>{roomName}</IonTitle>
           </IonToolbar>
         </IonHeader>
+
         {messages.map((message, i) => {
-          return (
-            <div key={i}>
-              {message.img ? (
-                playerName === message.playerName ? (
-                  <div style={{ padding: "10px 0" }}>
-                    <div align="right">{message.playerName}</div>
-                    <IonImg
-                      style={{
-                        maxWidth: "80%",
-                        maxHeight: "80%",
-                        marginLeft: "auto",
-                      }}
-                      src={message.img}
-                      onClick={() => getImgUrl(message.img)}
-                    />
-                    {console.log(message.img)}
-                  </div>
-                ) : (
-                  <div style={{ padding: "10px 0" }}>
-                    <div align="right">{message.playerName}</div>
-                    <IonImg
-                      style={{
-                        maxWidth: "80%",
-                        maxHeight: "80%",
-                        marginRight: "auto",
-                      }}
-                      src={message.img}
-                      onClick={() => setShowModal(true)}
-                    />
-                    {/* <IonModal isOpen={showModal} style={{ background: "dark" }}>
+          if (i === docCount) {
+            return (
+              <div key={i}>
+                {message.img ? (
+                  playerName === message.playerName ? (
+                    <div style={{ padding: "10px 0" }}>
+                      <div align="right">{message.playerName}</div>
+                      <IonImg
+                        style={{
+                          maxWidth: "80%",
+                          maxHeight: "80%",
+                          marginLeft: "auto",
+                        }}
+                        src={message.img}
+                        onClick={() => getImgUrl(message.img)}
+                        ref={myRef}
+                      />
+                      {console.log(message.img)}
+                    </div>
+                  ) : (
+                    <div style={{ padding: "10px 0" }}>
+                      <div align="right">{message.playerName}</div>
+                      <IonImg
+                        style={{
+                          maxWidth: "80%",
+                          maxHeight: "80%",
+                          marginRight: "auto",
+                        }}
+                        src={message.img}
+                        onClick={() => setShowModal(true)}
+                        ref={myRef}
+                      />
+                      {/* <IonModal isOpen={showModal} style={{ background: "dark" }}>
                       <IonImg
                         src={message.img}
                         style={{ display: "flex", alignItems: "center" }}
@@ -175,44 +184,125 @@ const Chat = () => {
                         close
                       </IonButton>
                     </IonModal> */}
+                    </div>
+                  )
+                ) : playerName === message.playerName ? (
+                  <div style={{ padding: "10px 0" }}>
+                    <div align="right">{message.playerName}</div>
+                    <IonLabel
+                      style={{
+                        display: "block",
+                        background: "#90ee90",
+                        borderRadius: "12px",
+                        fontSize: "20px",
+                        marginLeft: "100px",
+                        padding: "0 5px",
+                      }}
+                      ref={myRef}
+                    >
+                      {message.text}
+                    </IonLabel>
                   </div>
-                )
-              ) : playerName === message.playerName ? (
-                <div style={{ padding: "10px 0" }}>
-                  <div align="right">{message.playerName}</div>
-                  <IonLabel
-                    style={{
-                      display: "block",
-                      background: "#90ee90",
-                      borderRadius: "12px",
-                      fontSize: "20px",
-                      marginLeft: "100px",
-                      padding: "0 5px",
-                    }}
-                  >
-                    {message.text}
-                  </IonLabel>
-                </div>
-              ) : (
-                <div style={{ padding: "10px 0" }}>
-                  {message.playerName}
-                  <IonLabel
-                    style={{
-                      display: "block",
-                      background: "skyblue",
-                      borderRadius: "12px",
-                      fontSize: "20px",
-                      marginRight: "100px",
-                      padding: "0 5px",
-                    }}
-                  >
-                    {message.text}
-                  </IonLabel>
-                </div>
-              )}
-            </div>
-          );
+                ) : (
+                  <div style={{ padding: "10px 0" }}>
+                    {message.playerName}
+                    <IonLabel
+                      style={{
+                        display: "block",
+                        background: "skyblue",
+                        borderRadius: "12px",
+                        fontSize: "20px",
+                        marginRight: "100px",
+                        padding: "0 5px",
+                      }}
+                      ref={myRef}
+                    >
+                      {message.text}
+                    </IonLabel>
+                  </div>
+                )}
+              </div>
+            );
+          } else {
+            return (
+              <div key={i}>
+                {message.img ? (
+                  playerName === message.playerName ? (
+                    <div style={{ padding: "10px 0" }}>
+                      <div align="right">{message.playerName}</div>
+                      <IonImg
+                        style={{
+                          maxWidth: "80%",
+                          maxHeight: "80%",
+                          marginLeft: "auto",
+                        }}
+                        src={message.img}
+                        onClick={() => getImgUrl(message.img)}
+                      />
+                      {console.log(message.img)}
+                    </div>
+                  ) : (
+                    <div style={{ padding: "10px 0" }}>
+                      <div align="right">{message.playerName}</div>
+                      <IonImg
+                        style={{
+                          maxWidth: "80%",
+                          maxHeight: "80%",
+                          marginRight: "auto",
+                        }}
+                        src={message.img}
+                        onClick={() => setShowModal(true)}
+                      />
+                      {/* <IonModal isOpen={showModal} style={{ background: "dark" }}>
+                      <IonImg
+                        src={message.img}
+                        style={{ display: "flex", alignItems: "center" }}
+                      ></IonImg>
+                      <IonButton onClick={() => setShowModal(false)}>
+                        close
+                      </IonButton>
+                    </IonModal> */}
+                    </div>
+                  )
+                ) : playerName === message.playerName ? (
+                  <div style={{ padding: "10px 0" }}>
+                    <div align="right">{message.playerName}</div>
+                    <IonLabel
+                      style={{
+                        display: "block",
+                        background: "#90ee90",
+                        borderRadius: "12px",
+                        fontSize: "20px",
+                        marginLeft: "100px",
+                        padding: "0 5px",
+                      }}
+                    >
+                      {message.text}
+                    </IonLabel>
+                  </div>
+                ) : (
+                  <div style={{ padding: "10px 0" }}>
+                    {message.playerName}
+                    <IonLabel
+                      style={{
+                        display: "block",
+                        background: "skyblue",
+                        borderRadius: "12px",
+                        fontSize: "20px",
+                        marginRight: "100px",
+                        padding: "0 5px",
+                      }}
+                    >
+                      {message.text}
+                    </IonLabel>
+                  </div>
+                )}
+              </div>
+            );
+          }
         })}
+        {/* {executeScroll()} */}
+
         <IonModal isOpen={showModal} style={{ backgroundColor: "red" }}>
           <IonHeader>
             <IonIcon
@@ -232,7 +322,6 @@ const Chat = () => {
           </IonButtons> */}
           {/* <IonItem></IonItem> */}
         </IonModal>
-        <div id="#"></div>
       </IonContent>
       <IonFooter>
         <IonToolbar>
